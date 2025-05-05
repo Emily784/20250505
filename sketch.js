@@ -4,6 +4,9 @@
 let video;
 let handPose;
 let hands = [];
+let circleX, circleY, circleSize = 100;
+let isDragging = false; // 用於檢測手指是否接觸圓形
+let previousX, previousY; // 儲存上一個手指位置
 
 function preload() {
   // Initialize HandPose model with flipped video input
@@ -23,97 +26,339 @@ function setup() {
   video = createCapture(VIDEO, { flipped: true });
   video.hide();
 
+  // Initialize circle position
+  circleX = width / 2;
+  circleY = height / 2;
+
   // Start detecting hands
   handPose.detectStart(video, gotHands);
 }
 
 function draw() {
+  // 每次重繪畫布，清除之前的內容
+  background(220);
+
+  // 顯示攝影機影像
   image(video, 0, 0);
 
-  // Ensure at least one hand is detected
+  // 繪製圓形
+  fill(255, 0, 0, 150);
+  noStroke();
+  circle(circleX, circleY, circleSize);
+
+  // 確保至少檢測到一隻手
   if (hands.length > 0) {
+    let handDetected = false; // 檢測是否有手指接觸圓形
+
     for (let hand of hands) {
       if (hand.confidence > 0.1) {
-        // Loop through keypoints and draw circles
-        for (let i = 0; i < hand.keypoints.length; i++) {
-          let keypoint = hand.keypoints[i];
+        // 檢查食指指尖 (keypoint 8) 是否接觸圓形
+        let keypoint = hand.keypoints[8];
+        let d = dist(keypoint.x, keypoint.y, circleX, circleY);
 
-          // Color-code based on left or right hand
-          if (hand.handedness == "Left") {
-            fill(255, 0, 255);
-          } else {
-            fill(255, 255, 0);
+        if (d < circleSize / 2) {
+          // 移動圓形以跟隨食指
+          circleX = keypoint.x;
+          circleY = keypoint.y;
+
+          // 繪製軌跡線
+          if (isDragging) {
+            stroke(0, 0, 255);
+            strokeWeight(8); // 設定線條粗度為 8
+            line(previousX, previousY, keypoint.x, keypoint.y);
           }
 
-          noStroke();
-          circle(keypoint.x, keypoint.y, 16);
+          // 更新上一個位置
+          previousX = keypoint.x;
+          previousY = keypoint.y;
+
+          isDragging = true;
+          handDetected = true;
         }
 
-        // Draw lines connecting keypoints 0 to 4
-        if (hand.keypoints.length > 4) {
-          let color = hand.handedness == "Left" ? [255, 0, 255] : [255, 255, 0];
-          stroke(...color);
-          strokeWeight(2);
-
-          for (let i = 0; i < 4; i++) {
-            let start = hand.keypoints[i];
-            let end = hand.keypoints[i + 1];
-            line(start.x, start.y, end.x, end.y);
-          }
-        }
-
-        // Draw lines connecting keypoints 5 to 8
-        if (hand.keypoints.length > 8) {
-          let color = hand.handedness == "Left" ? [0, 255, 255] : [0, 255, 0];
-          stroke(...color);
-          strokeWeight(2);
-
-          for (let i = 5; i < 8; i++) {
-            let start = hand.keypoints[i];
-            let end = hand.keypoints[i + 1];
-            line(start.x, start.y, end.x, end.y);
-          }
-        }
-
-        // Draw lines connecting keypoints 9 to 12
-        if (hand.keypoints.length > 12) {
-          let color = hand.handedness == "Left" ? [255, 128, 0] : [0, 128, 255];
-          stroke(...color);
-          strokeWeight(2);
-
-          for (let i = 9; i < 12; i++) {
-            let start = hand.keypoints[i];
-            let end = hand.keypoints[i + 1];
-            line(start.x, start.y, end.x, end.y);
-          }
-        }
-
-        // Draw lines connecting keypoints 13 to 16
-        if (hand.keypoints.length > 16) {
-          let color = hand.handedness == "Left" ? [128, 0, 255] : [255, 255, 128];
-          stroke(...color);
-          strokeWeight(2);
-
-          for (let i = 13; i < 16; i++) {
-            let start = hand.keypoints[i];
-            let end = hand.keypoints[i + 1];
-            line(start.x, start.y, end.x, end.y);
-          }
-        }
-
-        // Draw lines connecting keypoints 17 to 20
-        if (hand.keypoints.length > 20) {
-          let color = hand.handedness == "Left" ? [0, 255, 128] : [128, 255, 0];
-          stroke(...color);
-          strokeWeight(2);
-
-          for (let i = 17; i < 20; i++) {
-            let start = hand.keypoints[i];
-            let end = hand.keypoints[i + 1];
-            line(start.x, start.y, end.x, end.y);
-          }
-        }
+        // 繪製食指指尖的可視化點
+        fill(0, 255, 0);
+        noStroke();
+        circle(keypoint.x, keypoint.y, 16);
       }
+    }
+
+    // 如果沒有手指接觸圓形，停止繪製軌跡
+    if (!handDetected) {
+      isDragging = false;
+    }
+  }
+}
+// Hand Pose Detection with ml5.js
+// https://thecodingtrain.com/tracks/ml5js-beginners-guide/ml5/hand-pose
+
+let video;
+let handPose;
+let hands = [];
+let circleX, circleY, circleSize = 100;
+let isDragging = false; // 用於檢測手指是否接觸圓形
+let previousX, previousY; // 儲存上一個手指位置
+
+function preload() {
+  // Initialize HandPose model with flipped video input
+  handPose = ml5.handPose({ flipped: true });
+}
+
+function mousePressed() {
+  console.log(hands);
+}
+
+function gotHands(results) {
+  hands = results;
+}
+
+function setup() {
+  createCanvas(640, 480);
+  video = createCapture(VIDEO, { flipped: true });
+  video.hide();
+
+  // Initialize circle position
+  circleX = width / 2;
+  circleY = height / 2;
+
+  // Start detecting hands
+  handPose.detectStart(video, gotHands);
+}
+
+function draw() {
+  // 每次重繪畫布，清除之前的內容
+  background(220);
+
+  // 顯示攝影機影像
+  image(video, 0, 0);
+
+  // 繪製圓形
+  fill(255, 0, 0, 150);
+  noStroke();
+  circle(circleX, circleY, circleSize);
+
+  // 確保至少檢測到一隻手
+  if (hands.length > 0) {
+    let handDetected = false; // 檢測是否有手指接觸圓形
+
+    for (let hand of hands) {
+      if (hand.confidence > 0.1) {
+        // 檢查食指指尖 (keypoint 8) 是否接觸圓形
+        let keypoint = hand.keypoints[8];
+        let d = dist(keypoint.x, keypoint.y, circleX, circleY);
+
+        if (d < circleSize / 2) {
+          // 移動圓形以跟隨食指
+          circleX = keypoint.x;
+          circleY = keypoint.y;
+
+          // 繪製軌跡線
+          if (isDragging) {
+            stroke(0, 0, 255);
+            strokeWeight(8); // 設定線條粗度為 8
+            line(previousX, previousY, keypoint.x, keypoint.y);
+          }
+
+          // 更新上一個位置
+          previousX = keypoint.x;
+          previousY = keypoint.y;
+
+          isDragging = true;
+          handDetected = true;
+        }
+
+        // 繪製食指指尖的可視化點
+        fill(0, 255, 0);
+        noStroke();
+        circle(keypoint.x, keypoint.y, 16);
+      }
+    }
+
+    // 如果沒有手指接觸圓形，停止繪製軌跡
+    if (!handDetected) {
+      isDragging = false;
+    }
+  }
+}
+// Hand Pose Detection with ml5.js
+// https://thecodingtrain.com/tracks/ml5js-beginners-guide/ml5/hand-pose
+
+let video;
+let handPose;
+let hands = [];
+let circleX, circleY, circleSize = 100;
+let isDragging = false; // 用於檢測手指是否接觸圓形
+let previousX, previousY; // 儲存上一個手指位置
+
+function preload() {
+  // Initialize HandPose model with flipped video input
+  handPose = ml5.handPose({ flipped: true });
+}
+
+function mousePressed() {
+  console.log(hands);
+}
+
+function gotHands(results) {
+  hands = results;
+}
+
+function setup() {
+  createCanvas(640, 480);
+  video = createCapture(VIDEO, { flipped: true });
+  video.hide();
+
+  // Initialize circle position
+  circleX = width / 2;
+  circleY = height / 2;
+
+  // Start detecting hands
+  handPose.detectStart(video, gotHands);
+}
+
+function draw() {
+  // 每次重繪畫布，清除之前的內容
+  background(220);
+
+  // 顯示攝影機影像
+  image(video, 0, 0);
+
+  // 繪製圓形
+  fill(255, 0, 0, 150);
+  noStroke();
+  circle(circleX, circleY, circleSize);
+
+  // 確保至少檢測到一隻手
+  if (hands.length > 0) {
+    let handDetected = false; // 檢測是否有手指接觸圓形
+
+    for (let hand of hands) {
+      if (hand.confidence > 0.1) {
+        // 檢查食指指尖 (keypoint 8) 是否接觸圓形
+        let keypoint = hand.keypoints[8];
+        let d = dist(keypoint.x, keypoint.y, circleX, circleY);
+
+        if (d < circleSize / 2) {
+          // 移動圓形以跟隨食指
+          circleX = keypoint.x;
+          circleY = keypoint.y;
+
+          // 繪製軌跡線
+          if (isDragging) {
+            stroke(0, 0, 255);
+            strokeWeight(8); // 設定線條粗度為 8
+            line(previousX, previousY, keypoint.x, keypoint.y);
+          }
+
+          // 更新上一個位置
+          previousX = keypoint.x;
+          previousY = keypoint.y;
+
+          isDragging = true;
+          handDetected = true;
+        }
+
+        // 繪製食指指尖的可視化點
+        fill(0, 255, 0);
+        noStroke();
+        circle(keypoint.x, keypoint.y, 16);
+      }
+    }
+
+    // 如果沒有手指接觸圓形，停止繪製軌跡
+    if (!handDetected) {
+      isDragging = false;
+    }
+  }
+}
+// Hand Pose Detection with ml5.js
+// https://thecodingtrain.com/tracks/ml5js-beginners-guide/ml5/hand-pose
+
+let video;
+let handPose;
+let hands = [];
+let circleX, circleY, circleSize = 100;
+let isDragging = false; // 用於檢測手指是否接觸圓形
+let previousX, previousY; // 儲存上一個手指位置
+
+function preload() {
+  // Initialize HandPose model with flipped video input
+  handPose = ml5.handPose({ flipped: true });
+}
+
+function mousePressed() {
+  console.log(hands);
+}
+
+function gotHands(results) {
+  hands = results;
+}
+
+function setup() {
+  createCanvas(640, 480);
+  video = createCapture(VIDEO, { flipped: true });
+  video.hide();
+
+  // Initialize circle position
+  circleX = width / 2;
+  circleY = height / 2;
+
+  // Start detecting hands
+  handPose.detectStart(video, gotHands);
+}
+
+function draw() {
+  // 每次重繪畫布，清除之前的內容
+  background(220);
+
+  // 顯示攝影機影像
+  image(video, 0, 0);
+
+  // 繪製圓形
+  fill(255, 0, 0, 150);
+  noStroke();
+  circle(circleX, circleY, circleSize);
+
+  // 確保至少檢測到一隻手
+  if (hands.length > 0) {
+    let handDetected = false; // 檢測是否有手指接觸圓形
+
+    for (let hand of hands) {
+      if (hand.confidence > 0.1) {
+        // 檢查食指指尖 (keypoint 8) 是否接觸圓形
+        let keypoint = hand.keypoints[8];
+        let d = dist(keypoint.x, keypoint.y, circleX, circleY);
+
+        if (d < circleSize / 2) {
+          // 移動圓形以跟隨食指
+          circleX = keypoint.x;
+          circleY = keypoint.y;
+
+          // 繪製軌跡線
+          if (isDragging) {
+            stroke(0, 0, 255);
+            strokeWeight(8); // 設定線條粗度為 8
+            line(previousX, previousY, keypoint.x, keypoint.y);
+          }
+
+          // 更新上一個位置
+          previousX = keypoint.x;
+          previousY = keypoint.y;
+
+          isDragging = true;
+          handDetected = true;
+        }
+
+        // 繪製食指指尖的可視化點
+        fill(0, 255, 0);
+        noStroke();
+        circle(keypoint.x, keypoint.y, 16);
+      }
+    }
+
+    // 如果沒有手指接觸圓形，停止繪製軌跡
+    if (!handDetected) {
+      isDragging = false;
     }
   }
 }
