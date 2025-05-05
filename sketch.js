@@ -4,11 +4,7 @@
 let video;
 let handPose;
 let hands = [];
-let circleX = 320;
-let circleY = 240;
-let circleSize = 50;
-let isDragging = false;
-let previousX, previousY;
+let circleX, circleY, circleSize = 50; // 圓形大小
 
 function preload() {
   // Initialize HandPose model with flipped video input
@@ -24,9 +20,13 @@ function gotHands(results) {
 }
 
 function setup() {
-  createCanvas(640, 480);
+  createCanvas(640, 480); // 設定畫布大小
   video = createCapture(VIDEO, { flipped: true });
   video.hide();
+
+  // 初始化圓形位置為畫布中心
+  circleX = width / 2;
+  circleY = height / 2;
 
   // Start detecting hands
   handPose.detectStart(video, gotHands);
