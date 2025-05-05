@@ -4,9 +4,11 @@
 let video;
 let handPose;
 let hands = [];
-let circleX, circleY, circleSize = 100;
-let previousX, previousY;
+let circleX = 320;
+let circleY = 240;
+let circleSize = 50;
 let isDragging = false;
+let previousX, previousY;
 
 function preload() {
   // Initialize HandPose model with flipped video input
@@ -25,10 +27,6 @@ function setup() {
   createCanvas(640, 480);
   video = createCapture(VIDEO, { flipped: true });
   video.hide();
-
-  // Initialize circle position
-  circleX = width / 2;
-  circleY = height / 2;
 
   // Start detecting hands
   handPose.detectStart(video, gotHands);
