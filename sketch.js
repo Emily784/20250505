@@ -61,6 +61,58 @@ function draw() {
             line(start.x, start.y, end.x, end.y);
           }
         }
+
+        // Draw lines connecting keypoints 5 to 8
+        if (hand.keypoints.length > 8) {
+          let color = hand.handedness == "Left" ? [0, 255, 255] : [0, 255, 0];
+          stroke(...color);
+          strokeWeight(2);
+
+          for (let i = 5; i < 8; i++) {
+            let start = hand.keypoints[i];
+            let end = hand.keypoints[i + 1];
+            line(start.x, start.y, end.x, end.y);
+          }
+        }
+
+        // Draw lines connecting keypoints 9 to 12
+        if (hand.keypoints.length > 12) {
+          let color = hand.handedness == "Left" ? [255, 128, 0] : [0, 128, 255];
+          stroke(...color);
+          strokeWeight(2);
+
+          for (let i = 9; i < 12; i++) {
+            let start = hand.keypoints[i];
+            let end = hand.keypoints[i + 1];
+            line(start.x, start.y, end.x, end.y);
+          }
+        }
+
+        // Draw lines connecting keypoints 13 to 16
+        if (hand.keypoints.length > 16) {
+          let color = hand.handedness == "Left" ? [128, 0, 255] : [255, 255, 128];
+          stroke(...color);
+          strokeWeight(2);
+
+          for (let i = 13; i < 16; i++) {
+            let start = hand.keypoints[i];
+            let end = hand.keypoints[i + 1];
+            line(start.x, start.y, end.x, end.y);
+          }
+        }
+
+        // Draw lines connecting keypoints 17 to 20
+        if (hand.keypoints.length > 20) {
+          let color = hand.handedness == "Left" ? [0, 255, 128] : [128, 255, 0];
+          stroke(...color);
+          strokeWeight(2);
+
+          for (let i = 17; i < 20; i++) {
+            let start = hand.keypoints[i];
+            let end = hand.keypoints[i + 1];
+            line(start.x, start.y, end.x, end.y);
+          }
+        }
       }
     }
   }
